@@ -1,32 +1,31 @@
 <?php
-$wordIndex = inval($_POST['wordIndex']);
-$trials =$_POST['trials'];
-$triedLetters = $_POST['triedLetters'];
-$letters = getUnserializedLetters($_POST['serializedLetters']); //ecrase la tableau de base avec le tableau qui est envoyé lors de chaque envoi en post du formulaire chaque envoi écrase le tableau précédent.
-$word = getWord($words,$wordIndex);
-
-$wordFound = false;
-
+if (!isset($_COOKIE['gamedata'])) {
+    die('Veuillez activer vos cookies pour jouer au pendu.');
+} else {
+    extract(decode($_COOKIE['gamedata']));//recrée les variables qui ont été encodées dans le cookie en getcontroller
+}
+$word = getWord($words, $wordIndex);
 $triedLetter = $_POST['triedLetter'];
-$replacementString = $_POST['replacementString'];
+$wordFound = false;
 
 $triedLetters .= $triedLetter;
 $letters[$triedLetter] = false;  //modifier dans le tableau le status de la lettre qui vient d'être joué.
-$letterFound =false;
+$letterFound = false;
 $wordLength = strlen($word);
 for ($i = 0; $i < $wordLength; $i++) {
     $l = substr($word, $i, 1);
     if ($triedLetter === $l) {
+        $letterFound = true;
         $replacementString = substr_replace($replacementString, $l, $i, 1);
     }
 }
-if(!$letterFound){
+if (!$letterFound) {
     $trials++;
-}else{
-    if ($word === $replacementString){
+} else {
+    if ($word === $replacementString) {
         $wordFound = true;
     }
 }
+$remainingTrials = MAX_TRIALS - $trials;
 
-$remainingTrials = MAX_TRIALS-$trials;
-$serializedLetters = getSerializedLetters($letters);
+setcookie('gamedata', encode(compact('letters', 'triedLetters', 'wordIndex', 'replacementString', 'trials')));
